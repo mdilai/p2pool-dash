@@ -334,7 +334,8 @@ def main(args, net, datadir_path, merged_urls, worker_endpoint):
             share_rate = args.miner_share_rate
 
         wb = work.WorkerBridge(node, my_pubkey_hash, args.donation_percentage,
-                               merged_urls, args.worker_fee, share_rate,
+                               merged_urls, args.worker_fee,
+                               args.min_difficulty, share_rate,
                                share_rate_type, args, pubkeys, dashd)
         web_root = web.get_web_root(wb, datadir_path, dashd_getinfo_var, static_dir=args.web_static)
         caching_wb = worker_interface.CachingWorkerBridge(wb)
@@ -577,6 +578,9 @@ def run():
     worker_group.add_argument('--address-share-rate', metavar='SHARES_PER_MINUTE',
         help='number of psuedoshares per minute for each address',
         type=float, action='store', default=None, dest='address_share_rate')
+    worker_group.add_argument('--min-difficulty', metavar='DIFFICULTY',
+        help='minium difficulty for miners',
+        type=int, action='store', default=1, dest='min_difficulty')
     
     dashd_group = parser.add_argument_group('dashd interface')
     dashd_group.add_argument('--dashd-config-path', metavar='DASHD_CONFIG_PATH',
