@@ -394,6 +394,11 @@ class WorkerBridge(worker_interface.WorkerBridge):
                     target = min(target, 1000 *
                                  dash_data.average_attempts_to_target((dash_data.target_to_average_attempts(
                                      self.node.dashd_work.value['bits'].target)*self.node.net.SPREAD)*self.node.net.PARENT.DUST_THRESHOLD/self.current_work.value['subsidy']))
+            difficulty = dash_data.target_to_difficulty(target)
+            rounded_difficulty = 1
+            while (rounded_difficulty + rounded_difficulty * 2) / 2 < difficulty:
+                rounded_difficulty = rounded_difficulty * 2
+            target = dash_data.difficulty_to_target(rounded_difficulty)
         else:
             target = desired_pseudoshare_target
         target = max(target, share_info['bits'].target)
