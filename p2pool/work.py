@@ -392,7 +392,7 @@ class WorkerBridge(worker_interface.WorkerBridge):
                     dash_data.pubkey_hash_to_address(pubkey_hash, self.node.net.PARENT),
                     dash_data.target_to_difficulty(target),
                     dash_data.target_to_difficulty(share_info['bits'].target),
-                    local_addr_rates.get(pubkey_hash, 0),
+                    self.get_local_addr_rates().get(pubkey_hash, 0),
                     self.current_work.value['subsidy']*1e-8, self.node.net.PARENT.SYMBOL,
                     len(self.current_work.value['transactions']),
                     sum(map(dash_data.tx_type.packed_size, self.current_work.value['transactions']))/1000.,
