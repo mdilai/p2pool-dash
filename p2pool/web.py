@@ -488,11 +488,11 @@ def get_web_root(wb, datadir_path, dashd_getinfo_var, stop_event=variable.Event(
     # expose various dashd RPC commands
     dashd_root = resource.Resource()
     dashd_root.putChild('block',             WebInterface(lambda block_hash_str: node.dashd.rpc_getblock(block_hash_str)))
-    dashd_root.putChild('rawtransaction',    WebInterface(lambda transaction_hash_str: node.dashd.rpc_getrawtransaction(transaction_hash_str, 1)))
     dashd_root.putChild('getblockchaininfo', WebInterface(node.dashd.rpc_getblockchaininfo))
     dashd_root.putChild('getinfo',           WebInterface(node.dashd.rpc_getinfo))
     dashd_root.putChild('getmininginfo',     WebInterface(node.dashd.rpc_getmininginfo))
     dashd_root.putChild('getpeerinfo',       WebInterface(node.dashd.rpc_getpeerinfo))
+    dashd_root.putChild('rawtransaction',    WebInterface(lambda transaction_hash_str: node.dashd.rpc_getrawtransaction(transaction_hash_str, 1)))
     web_root.putChild('dashd', dashd_root)
 
     return web_root
