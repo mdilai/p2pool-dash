@@ -199,6 +199,7 @@ def get_web_root(wb, datadir_path, dashd_getinfo_var, stop_event=variable.Event(
     
     def decent_height():
         return min(node.tracker.get_height(node.best_share_var.value), 720)
+
     web_root.putChild('rate', WebInterface(lambda: p2pool_data.get_pool_attempts_per_second(node.tracker, node.best_share_var.value, decent_height())/(1-p2pool_data.get_average_stale_prop(node.tracker, node.best_share_var.value, decent_height()))))
     web_root.putChild('difficulty', WebInterface(lambda: dash_data.target_to_difficulty(node.tracker.items[node.best_share_var.value].max_target)))
     web_root.putChild('users', WebInterface(get_users))
@@ -352,17 +353,6 @@ def get_web_root(wb, datadir_path, dashd_getinfo_var, stop_event=variable.Event(
 
     new_root.putChild('payout_address', WebInterface(lambda share_hash_str: get_share_address(share_hash_str)))
     new_root.putChild('share', WebInterface(lambda share_hash_str: get_share(share_hash_str)))
-    
-    def get_block(block_hash_str):
-        block = node.dashd.rpc_getblock(block_hash_str)
-        return block
-    new_root.putChild('block', WebInterface(lambda block_hash_str: get_block(block_hash_str)))
-
-    def get_rawtransaction(transaction_hash_str):
-        rawtransaction = node.dashd.rpc_getrawtransaction(transaction_hash_str, 1)
-        return rawtransaction
-    new_root.putChild('rawtransaction', WebInterface(lambda transaction_hash_str: get_rawtransaction(transaction_hash_str)))
-
     new_root.putChild('heads', WebInterface(lambda: ['%064x' % x for x in node.tracker.heads]))
     new_root.putChild('verified_heads', WebInterface(lambda: ['%064x' % x for x in node.tracker.verified.heads]))
     new_root.putChild('tails', WebInterface(lambda: ['%064x' % x for t in node.tracker.tails for x in node.tracker.reverse.get(t, set())]))
@@ -494,5 +484,15 @@ def get_web_root(wb, datadir_path, dashd_getinfo_var, stop_event=variable.Event(
     if static_dir is None:
         static_dir = os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), 'web-static')
     web_root.putChild('static', static.File(static_dir))
-    
+
+    # expose various dashd RPC commands
+    dashd_root = resource.Resource()
+    dashd_root.putChild('block',             WebInterface(lambda block_hash_str: node.dashd.rpc_getblock(block_hash_str)))
+    dashd_root.putChild('rawtransaction',    WebInterface(lambda transaction_hash_str: node.dashd.rpc_getrawtransaction(transaction_hash_str, 1)))
+    dashd_root.putChild('getblockchaininfo', WebInterface(node.dashd.rpc_getblockchaininfo))
+    dashd_root.putChild('getinfo',           WebInterface(node.dashd.rpc_getinfo))
+    dashd_root.putChild('getmininginfo',     WebInterface(node.dashd.rpc_getmininginfo))
+    dashd_root.putChild('getpeerinfo',       WebInterface(node.dashd.rpc_getpeerinfo))
+    web_root.putChild('dashd', dashd_root)
+
     return web_root
