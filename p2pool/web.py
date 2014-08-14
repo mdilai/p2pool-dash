@@ -138,6 +138,11 @@ def get_web_root(wb, datadir_path, dashd_getinfo_var, stop_event=variable.Event(
         for addr in wb.last_work_shares.value:
             miner_last_difficulties[addr] = dash_data.target_to_difficulty(wb.last_work_shares.value[addr].target)
 
+        unknown_shares = 0
+        for share_hash_str in wb.my_share_hashes:
+            if int(share_hash_str, 16) not in node.tracker.items:
+                unknown_shares += 1
+
         return dict(
             my_hash_rates_in_last_hour=dict(
                 note="DEPRECATED",
@@ -170,6 +175,7 @@ def get_web_root(wb, datadir_path, dashd_getinfo_var, stop_event=variable.Event(
                 total=shares,
                 orphan=stale_orphan_shares,
                 dead=stale_doa_shares,
+                unknown=unknown_shares,
             ),
             uptime=time.time() - start_time,
             attempts_to_share=dash_data.target_to_average_attempts(node.tracker.items[node.best_share_var.value].max_target),
