@@ -140,7 +140,7 @@ def get_web_root(wb, datadir_path, dashd_getinfo_var, stop_event=variable.Event(
 
         unknown_shares = 0
         for share_hash_str in wb.my_share_hashes:
-            if int(share_hash_str, 16) not in node.tracker.items:
+            if share_hash_str not in node.tracker.items:
                 unknown_shares += 1
 
         return dict(
