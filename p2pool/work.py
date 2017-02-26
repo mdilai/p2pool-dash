@@ -113,7 +113,8 @@ class WorkerBridge(worker_interface.WorkerBridge):
                     transaction_fees=[],
                     merkle_link=dash_data.calculate_merkle_link([None], 0),
                     subsidy=self.node.dashd_work.value['subsidy'],
-                    last_update=self.node.dashd_work.value['last_update'],
+                    last_update=t['last_update'],
+                    skipping=self.current_work.value.get('skipping', 3) - 1 if                  self.current_work.value is not None else 2
                     payment_amount=self.node.dashd_work.value['payment_amount'],
                     packed_payments=self.node.dashd_work.value['packed_payments'],
                 )
@@ -129,6 +130,21 @@ class WorkerBridge(worker_interface.WorkerBridge):
             # trigger LP if version/previous_block/bits changed or transactions changed from nothing
             if any(before[x] != after[x] for x in ['version', 'previous_block', 'bits']) or (not before['transactions'] and after['transactions']):
                 self.new_work_event.happened()
+            # refetch block template if best block changed
+            if after.get('skipping', -2) >= 0:
+                time.sleep(0.5)
+                self.node.dashd_work.set((yield helper.getwork(self.dashd, self.node.dashd_work.value['use_getblocktemplate'])))
+            elif after.get('skipping', -2) == -1:
+                # revert if dashd doesn't have the new block
+                h = yield self.dashd.rpc_getblockheader((yield self.dashd.rpc_getbestblockhash()))
+                self.node.best_block_header.set(dict(
+                    version=h['version'],
+                    previous_block=int(h['previousblockhash'], 16),
+                    merkle_root=int(h['merkleroot'], 16),
+                    timestamp=h['time'],
+                    bits=dash_data.FloatingIntegerType().unpack(h['bits'].decode('hex')[::-1]) if isinstance(h['bits'], (str, unicode)) else dash_data.FloatingInteger(h['bits']),
+                    nonce=h['nonce']
+                ))
         self.merged_work.changed.watch(lambda _: self.new_work_event.happened())
         self.node.best_share_var.changed.watch(lambda _: self.new_work_event.happened())
 
