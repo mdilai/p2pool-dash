@@ -32,11 +32,11 @@ class WorkerBridge(worker_interface.WorkerBridge):
         self.args = args
         self.my_pubkey_hash = my_pubkey_hash
 		
-        self.donation_percentage = args.donation_percentage
-        self.worker_fee = args.worker_fee
-        self.min_difficulty = args.min_difficulty
-        self.share_rate = args.share_rate
-        self.share_rate_type = args.share_rate_type
+        self.donation_percentage = donation_percentage
+        self.worker_fee = worker_fee
+        self.min_difficulty = min_difficulty
+        self.share_rate = share_rate
+        self.share_rate_type = share_rate_type
 
         self.net = self.node.net.PARENT
         self.running = True
@@ -419,8 +419,7 @@ class WorkerBridge(worker_interface.WorkerBridge):
         else:
             current_time = time.time()
             if (current_time - print_throttle) > 5.0:
-                print 'New work for %s! Diff: %.03f Share diff: %.03f (speed
-                %.03f) Block value: %.3f %s (%i tx, %.03f kB)' % (
+                print 'New work for %s! Diff: %.03f Share diff: %.03f (speed %.03f) Block value: %.3f %s (%i tx, %.3f kB)' % (
                     dash_data.pubkey_hash_to_address(pubkey_hash, self.node.net.PARENT),
                     dash_data.target_to_difficulty(target),
                     dash_data.target_to_difficulty(share_info['bits'].target),
