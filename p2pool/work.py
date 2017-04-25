@@ -369,7 +369,7 @@ class WorkerBridge(worker_interface.WorkerBridge):
                 # one node has the whole p2pool hashrate, it will still only need to process one pseudoshare
                 # every 0.3 seconds.
                 target = min(target, 1000 * dash_data.average_attempts_to_target((dash_data.target_to_average_attempts(
-                    self.node.dashd_work.value['bits'].target)*self.node.net.SPREAD)*self.node.net.PARENT.DUST_THRESHOLD/block_subsidy))
+                    self.node.dashd_work.value['bits'].target)*self.node.net.SPREAD)*self.node.net.PARENT.DUST_THRESHOLD/self.current_work.value['subsidy']))
         else:
             target = desired_pseudoshare_target
         target = max(target, share_info['bits'].target)
