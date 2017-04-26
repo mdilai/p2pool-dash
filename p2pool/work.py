@@ -117,7 +117,8 @@ class WorkerBridge(worker_interface.WorkerBridge):
                     merkle_link=dash_data.calculate_merkle_link([None], 0),
                     subsidy=self.node.dashd_work.value['subsidy'],
                     last_update=t['last_update'],
-                    skipping=self.current_work.value.get('skipping', 3) - 1 if                  self.current_work.value is not None else 2
+                    skipping=self.current_work.value.get('skipping', 3) - 1 if
+                    self.current_work.value is not None else 2,
                     payment_amount=self.node.dashd_work.value['payment_amount'],
                     packed_payments=self.node.dashd_work.value['packed_payments'],
                 )
@@ -233,8 +234,7 @@ class WorkerBridge(worker_interface.WorkerBridge):
         if time.time() > self.current_work.value['last_update'] + 60:
             raise jsonrpc.Error_for_code(-12345)(u'lost contact with dashd')
         user, pubkey_hash, desired_share_target, desired_pseudoshare_target = self.get_user_details(user)
-        return user, pubkey_hash, desired_share_target,
-    desired_pseudoshare_target
+        return user, pubkey_hash, desired_share_target, desired_pseudoshare_target
 
     def _estimate_local_hash_rate(self):
         if len(self.recent_shares_ts_work) == 50:
