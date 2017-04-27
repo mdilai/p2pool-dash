@@ -419,11 +419,11 @@ class WorkerBridge(worker_interface.WorkerBridge):
         else:
             current_time = time.time()
             if (current_time - print_throttle) > 5.0:
-                print 'New work for %s! Diff: %.03f Share diff: %.03f (speed %.03f) Block value: %.3f %s (%i tx, %.3f kB)' % (
+                print 'New work for %s! Diff: %.03f Share diff: %.03f (speed %.03f MH/s) Block value: %.3f %s (%i tx, %.3f kB)' % (
                     dash_data.pubkey_hash_to_address(pubkey_hash, self.node.net.PARENT),
                     dash_data.target_to_difficulty(target),
                     dash_data.target_to_difficulty(share_info['bits'].target),
-                    local_addr_rates.get(pubkey_hash, 0),
+                    local_addr_rates.get(pubkey_hash, 0)*1e-6,
                     self.current_work.value['subsidy']*1e-8, self.node.net.PARENT.SYMBOL,
                     len(self.current_work.value['transactions']),
                     sum(map(dash_data.tx_type.packed_size, self.current_work.value['transactions']))/1000.,
