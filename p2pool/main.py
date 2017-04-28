@@ -580,7 +580,7 @@ def run():
         type=float, action='store', default=None, dest='address_share_rate')
     worker_group.add_argument('--min-difficulty', metavar='DIFFICULTY',
         help='minium difficulty for miners',
-        type=float, action='store', default=1.0, dest='min_difficulty')
+        type=float, action='store', default=0.01, dest='min_difficulty')
     
     dashd_group = parser.add_argument_group('dashd interface')
     dashd_group.add_argument('--dashd-config-path', metavar='DASHD_CONFIG_PATH',
