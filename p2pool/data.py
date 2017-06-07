@@ -661,6 +661,8 @@ class ShareStore(object):
         self.dirname = os.path.dirname(os.path.abspath(prefix))
         self.filename = os.path.basename(os.path.abspath(prefix))
         self.net = net
+
+        start = time.time()
         
         known = {}
         filenames, next = self.get_filenames_and_next()
@@ -693,6 +695,8 @@ class ShareStore(object):
         
         self.known = known # filename -> (set of share hashes, set of verified hashes)
         self.known_desired = dict((k, (set(a), set(b))) for k, (a, b) in known.iteritems())
+
+        print "Share loading took %.3f seconds" % (time.time() - start)
     
     def _add_line(self, line):
         filenames, next = self.get_filenames_and_next()
