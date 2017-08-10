@@ -393,9 +393,8 @@ class WorkerBridge(worker_interface.WorkerBridge):
             else: # per-node
                 local_hash_rate = self._estimate_local_hash_rate()
                 if local_hash_rate is not None:
-                    target = min(target, 1000 *
-                                 dash_data.average_attempts_to_target((dash_data.target_to_average_attempts(
-                                     self.node.dashd_work.value['bits'].target)*self.node.net.SPREAD)*self.node.net.PARENT.DUST_THRESHOLD/self.current_work.value['subsidy']))
+                    target = min(target,
+                                 dash_data.average_attempts_to_target(local_hash_rate * 1)) # limit to 1 share response every second by modulating pseudoshare difficulty
             difficulty = dash_data.target_to_difficulty(target)
             rounded_difficulty = 1
             if difficulty >= 1:
