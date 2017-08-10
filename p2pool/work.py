@@ -321,13 +321,19 @@ class WorkerBridge(worker_interface.WorkerBridge):
                     share_type = previous_share_type
 
         local_addr_rates = self.get_local_addr_rates()
+        pool_rate = None
+        height = self.node.tracker.get_height(self.node.best_share_var.value)
+        if height > 5: # we want at least 6 shares in chain
+		stale_prop = p2pool_data.get_average_stale_prop(self.node.tracker, self.node.best_share_var.value, min(60*60//self.node.net.SHARE_PERIOD, height))
+		pool_rate = p2pool_data.get_pool_attempts_per_second(self.node.tracker, self.node.best_share_var.value, min(height - 1, 60*60//self.node.net.SHARE_PERIOD)) / (1 - stale_prop)
 
         if desired_share_target is None:
             desired_share_target = 2**256-1
             local_hash_rate = local_addr_rates.get(pubkey_hash, 0)
-            if local_hash_rate > 0.0:
-                desired_share_target = min(desired_share_target,
-                    dash_data.average_attempts_to_target(local_hash_rate * self.node.net.SHARE_PERIOD / 0.0167)) # limit to 1.67% of pool shares by modulating share difficulty
+            if local_hash_rate > 0.0 and pool_rate is not None:
+#                desired_share_target = min(desired_share_target,
+#                    dash_data.average_attempts_to_target(local_hash_rate * self.node.net.SHARE_PERIOD / 0.0167)) # limit to 1.67% of pool shares by modulating share difficulty
+		desired_share_target = 20 * (max(self.node.dashd_work.value['bits'].target * pool_rate, 2**256 // (self.node.net.CHAIN_LENGTH * self.node.net.SHARE_PERIOD)) // local_hash_rate)
 
             lookbehind = 3600//self.node.net.SHARE_PERIOD
             block_subsidy = self.node.dashd_work.value['subsidy']
