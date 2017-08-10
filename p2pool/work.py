@@ -323,7 +323,8 @@ class WorkerBridge(worker_interface.WorkerBridge):
         local_addr_rates = self.get_local_addr_rates()
 
         if desired_share_target is None:
-            desired_share_target = 2**256-1
+            #desired_share_target = 2**256-1
+            desired_share_target = 2**256//2**32 - 1
             local_hash_rate = local_addr_rates.get(pubkey_hash, 0)
             if local_hash_rate > 0.0:
                 desired_share_target = min(desired_share_target,
