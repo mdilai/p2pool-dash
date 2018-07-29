@@ -321,6 +321,7 @@ class WorkerBridge(worker_interface.WorkerBridge):
                     share_type = successor_type
                 else:
                     share_type = previous_share_type
+        local_addr_rates = self.get_local_addr_rates()
 
         local_addr_rates = self.get_local_addr_rates()
 
@@ -420,11 +421,11 @@ class WorkerBridge(worker_interface.WorkerBridge):
         else:
             current_time = time.time()
             if (current_time - print_throttle) > 5.0:
-                print 'New work for %s! Diff: %.03f Share diff: %.03f (speed %.03f MH/s) Block value: %.3f %s (%i tx, %.3f kB)' % (
+                print 'New work for worker %s! Difficulty: %.06f Share difficulty: %.06f (speed %.06f) Total block value: %.6f %s including %i transactions' % (
                     dash_data.pubkey_hash_to_address(pubkey_hash, self.node.net.PARENT),
                     dash_data.target_to_difficulty(target),
                     dash_data.target_to_difficulty(share_info['bits'].target),
-                    local_addr_rates.get(pubkey_hash, 0)*1e-6,
+                    local_addr_rates.get(pubkey_hash, 0),
                     self.current_work.value['subsidy']*1e-8, self.node.net.PARENT.SYMBOL,
                     len(self.current_work.value['transactions']),
                     sum(map(dash_data.tx_type.packed_size, self.current_work.value['transactions']))/1000.,

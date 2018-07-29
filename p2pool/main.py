@@ -104,10 +104,10 @@ def main(args, net, datadir_path, merged_urls, worker_endpoint):
         yield helper.check(dashd, net)
         temp_work = yield helper.getwork(dashd, net)
         
-        dashd_getinfo_var = variable.Variable(None)
+        dashd_getnetworkinfo_var = variable.Variable(None)
         @defer.inlineCallbacks
         def poll_warnings():
-            dashd_getinfo_var.set((yield deferral.retry('Error while calling getinfo:')(dashd.rpc_getinfo)()))
+            dashd_getnetworkinfo_var.set((yield deferral.retry('Error while calling getnetworkinfo:')(dashd.rpc_getnetworkinfo)()))
         yield poll_warnings()
         deferral.RobustLoopingCall(poll_warnings).start(20*60)
         
@@ -339,7 +339,7 @@ def main(args, net, datadir_path, merged_urls, worker_endpoint):
                                merged_urls, args.worker_fee,
                                args.min_difficulty, share_rate,
                                share_rate_type, args, pubkeys, dashd)
-        web_root = web.get_web_root(wb, datadir_path, dashd_getinfo_var, static_dir=args.web_static)
+        web_root = web.get_web_root(wb, datadir_path, dashd_getnetworkinfo_var, static_dir=args.web_static)
         caching_wb = worker_interface.CachingWorkerBridge(wb)
         worker_interface.WorkerInterface(caching_wb).attach_to(web_root, get_handler=lambda request: request.redirect('/static/'))
         web_serverfactory = server.Site(web_root)
@@ -469,7 +469,7 @@ def main(args, net, datadir_path, merged_urls, worker_endpoint):
                             math.format_dt(2**256 / node.dashd_work.value['bits'].target / real_att_s),
                         )
                         
-                        for warning in p2pool_data.get_warnings(node.tracker, node.best_share_var.value, net, dashd_getinfo_var.value, node.dashd_work.value):
+                        for warning in p2pool_data.get_warnings(node.tracker, node.best_share_var.value, net, dashd_getnetworkinfo_var.value, node.dashd_work.value):
                             print >>sys.stderr, '#'*40
                             print >>sys.stderr, '>>> Warning: ' + warning
                             print >>sys.stderr, '#'*40
