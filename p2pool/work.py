@@ -428,7 +428,6 @@ class WorkerBridge(worker_interface.WorkerBridge):
                     local_addr_rates.get(pubkey_hash, 0),
                     self.current_work.value['subsidy']*1e-8, self.node.net.PARENT.SYMBOL,
                     len(self.current_work.value['transactions']),
-                    sum(map(dash_data.tx_type.packed_size, self.current_work.value['transactions']))/1000.,
                 )
                 print_throttle = time.time()
 
