@@ -352,8 +352,9 @@ class WorkerBridge(worker_interface.WorkerBridge):
                     previous_share_hash=self.node.best_share_var.value,
                     coinbase=(script.create_push_script([
                         self.current_work.value['height'],
-                        ] + ([mm_data] if mm_data else []) +
-                        self.args.coinb_texts) + self.current_work.value['coinbaseflags'] + self.node.net.COINBASEEXT)[:100],
+                        ] + ([mm_data] if mm_data else []) + [
+                    ]) + self.current_work.value['coinbaseflags'] + self.node.net.COINBASEEXT)[:100],
+                    coinbase_payload=self.current_work.value['coinbase_payload'],
                     nonce=random.randrange(2**32),
                     pubkey_hash=pubkey_hash,
                     subsidy=self.current_work.value['subsidy'],
@@ -437,12 +438,16 @@ class WorkerBridge(worker_interface.WorkerBridge):
         #need this for stats
         self.last_work_shares.value[dash_data.pubkey_hash_to_address(pubkey_hash, self.node.net.PARENT)]=share_info['bits']
 
+        coinbase_payload_size = 0
+        if gentx['version'] == 3 and gentx['type'] == 5:
+            coinbase_payload_size = len(pack.VarStrType().pack(gentx['payload']))
+
         ba = dict(
             version=self.current_work.value['version'],
             previous_block=self.current_work.value['previous_block'],
             merkle_link=merkle_link,
-            coinb1=packed_gentx[:-self.COINBASE_NONCE_LENGTH-4],
-            coinb2=packed_gentx[-4:],
+            coinb1=packed_gentx[:-coinbase_payload_size-self.COINBASE_NONCE_LENGTH-4],
+            coinb2=packed_gentx[-coinbase_payload_size-4:],
             timestamp=self.current_work.value['time'],
             bits=self.current_work.value['bits'],
             share_target=target,
@@ -452,7 +457,7 @@ class WorkerBridge(worker_interface.WorkerBridge):
 
         def got_response(header, user, coinbase_nonce):
             assert len(coinbase_nonce) == self.COINBASE_NONCE_LENGTH
-            new_packed_gentx = packed_gentx[:-self.COINBASE_NONCE_LENGTH-4] + coinbase_nonce + packed_gentx[-4:] if coinbase_nonce != '\0'*self.COINBASE_NONCE_LENGTH else packed_gentx
+            new_packed_gentx = packed_gentx[:-coinbase_payload_size-self.COINBASE_NONCE_LENGTH-4] + coinbase_nonce + packed_gentx[-coinbase_payload_size-4:] if coinbase_nonce != '\0'*self.COINBASE_NONCE_LENGTH else packed_gentx
             new_gentx = dash_data.tx_type.unpack(new_packed_gentx) if coinbase_nonce != '\0'*self.COINBASE_NONCE_LENGTH else gentx
 
             header_hash = self.node.net.PARENT.BLOCKHASH_FUNC(dash_data.block_header_type.pack(header))
