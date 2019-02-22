@@ -54,7 +54,7 @@ DONATION_SCRIPT = '41047559d13c3f81b1fadbd8dd03e4b5a1c73b05e2b980e00d467aa9440b2
 
 class Share(object):
     VERSION = 16
-    VOTING_VERSION = 15
+    VOTING_VERSION = 16
     SUCCESSOR = None
     
     small_block_header_type = pack.ComposedType([
@@ -242,26 +242,26 @@ class Share(object):
                 script='\x6a\x28' + cls.get_ref_hash(net, share_info, ref_merkle_link) + pack.IntType(64).pack(last_txout_nonce),
             )],
             lock_time=0,
-            payload=None,
+            extra_payload=None,
         )
 
-        if share_data['coinbase_payload'] is not None:
+        if share_data['coinbase_payload'] is not None and len(share_data['coinbase_payload']) != 0:
             # DIP3/DIP4 cbtx
             gentx['version'] = 3
             gentx['type'] = 5
-            gentx['payload'] = share_data['coinbase_payload']
+            gentx['extra_payload'] = share_data['coinbase_payload']
         
         def get_share(header, last_txout_nonce=last_txout_nonce):
             min_header = dict(header); del min_header['merkle_root']
 
             packed_gentx = dash_data.tx_type.pack(gentx)
 
-            payload_start = len(packed_gentx)
-            payload = None
+            coinbase_payload_data_size = 0
+            coinbase_payload_data = None
             if share_data['coinbase_payload'] is not None and len(share_data['coinbase_payload']) != 0:
-                payload = pack.VarStrType().pack(share_data['coinbase_payload'])
-                payload_start -= len(payload)
-            prefix = packed_gentx[:payload_start-32-8-4]
+                coinbase_payload_data = pack.VarStrType().pack(share_data['coinbase_payload'])
+                coinbase_payload_data_size = len(coinbase_payload_data)
+            prefix = packed_gentx[:-coinbase_payload_data_size-32-8-4]
 
             share = cls(net, None, dict(
                 min_header=min_header,
@@ -270,7 +270,7 @@ class Share(object):
                 last_txout_nonce=last_txout_nonce,
                 hash_link=prefix_to_hash_link(prefix, cls.gentx_before_refhash),
                 merkle_link=dash_data.calculate_merkle_link([None] + other_transaction_hashes, 0),
-                coinbase_payload=payload,
+                coinbase_payload=coinbase_payload_data,
             ))
             assert share.header == header # checks merkle_root
             return share
@@ -328,13 +328,13 @@ class Share(object):
                 n.add(tx_count)
         assert n == set(xrange(len(self.share_info['new_transaction_hashes'])))
 
-        payload = contents['coinbase_payload']
-        if payload is None:
-            payload = b''
+        coinbase_payload_data = contents['coinbase_payload']
+        if coinbase_payload_data is None:
+            coinbase_payload_data = b''
 
         self.gentx_hash = check_hash_link(
             self.hash_link,
-            self.get_ref_hash(net, self.share_info, contents['ref_merkle_link']) + pack.IntType(64).pack(self.contents['last_txout_nonce']) + pack.IntType(32).pack(0) + payload,
+            self.get_ref_hash(net, self.share_info, contents['ref_merkle_link']) + pack.IntType(64).pack(self.contents['last_txout_nonce']) + pack.IntType(32).pack(0) + coinbase_payload_data,
             self.gentx_before_refhash,
         )
         merkle_root = dash_data.check_merkle_link(self.gentx_hash, self.merkle_link)
@@ -681,7 +681,7 @@ def get_warnings(tracker, best_share, net, dashd_getnetworkinfo, dashd_work_valu
     majority_desired_version = max(desired_version_counts, key=lambda k: desired_version_counts[k])
     if majority_desired_version > (Share.SUCCESSOR if Share.SUCCESSOR is not None else Share).VOTING_VERSION and desired_version_counts[majority_desired_version] > sum(desired_version_counts.itervalues())/2:
         res.append('A MAJORITY OF SHARES CONTAIN A VOTE FOR AN UNSUPPORTED SHARE IMPLEMENTATION! (v%i with %i%% support)\n'
-            'An upgrade is likely necessary. Check http://p2pool.forre.st/ for more information.' % (
+            'An upgrade is likely necessary. Check https://github.com/dashpay/p2pool-dash for more information.' % (
                 majority_desired_version, 100*desired_version_counts[majority_desired_version]/sum(desired_version_counts.itervalues())))
     
     if dashd_getnetworkinfo['warnings'] != '':
